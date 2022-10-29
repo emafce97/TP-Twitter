@@ -57,6 +57,72 @@ class Programa:
     def __imprimir_tweet(self,tweets):
         for i in tweets:
             print(i)
+    
+    # Funciona
+    def buscar_palabra(self, palabra):
+        """Busca una palabra"""
+
+        set_tweets = set()
+        for i in range(2):
+            with open(file=f"file_{i}.json",mode="r",encoding="utf-8") as file:
+                documentos = json.load(file)
+                lista_documentos = []
+                for id_tweet in documentos.keys():
+                    mapa = { id_tweet : documentos[id_tweet]["texto"] }
+                    lista_documentos.append(mapa)
+                resultados = indice_invertido_btree(lista_documentos).buscar(palabra)
+                for i in resultados:
+                    set_tweets.add(i)
+
+        return set_tweets
+
+    # FUNCIONA
+    def buscar_palabra_frases_1(self):
+
+        palabras_buscadas = input("Ingrese las palabras a buscar: ").split(",")
+        palabras_evitadas = input("Ingrese las palabras a evitar: ").split(",")
+
+        set_comparador = set()
+
+        for i in range(2):
+            with open(file=f"file_{i}.json", mode="r", encoding="utf-8") as file:
+                documentos = json.load(file)
+                lista_documentos = []
+                for id_tweet in documentos.keys():
+                    mapa = {id_tweet: documentos[id_tweet]["texto"]}
+                    lista_documentos.append(mapa)
+                indice = Indice_Invertido(lista_documentos)
+                for palabra in palabras_buscadas:
+                    if len(set_comparador) == 0:
+                        set_comparador = indice.buscar(palabra)
+                    else:
+                        set_comparador = set_comparador.intersection(indice.buscar(palabra))
+        return set_comparador
+
+    # FUNCIONA
+    def buscar_palabra_frases_2(self):
+
+        palabras_buscadas = input("Ingrese las palabras a buscar: ").split(",")
+        palabras_evitadas = input("Ingrese las palabras a evitar: ").split(",")
+
+        set_comparador = set()
+
+        for palabra in palabras_buscadas:
+            if len(set_comparador) == 0:
+                set_comparador = self.buscar_palabra(palabra)
+            else:
+                set_comparador.intersection(self.buscar_palabra(palabra))
+        return set_comparador
+
+    def __imprimir_tweet(self,tweets):
+        for i in tweets:
+            print(i)
+
+if __name__ == "__main__":
+    p = Programa()
+    #print(p.buscar_palabra("pizza"))
+    #print(p.buscar_palabra_frases())
+    print(p.buscar_palabra_frases_1())
 
 if __name__ == "__main__":
     p = Programa()
