@@ -1,13 +1,11 @@
 from nltk.stem import SnowballStemmer #Stemmer
 from nltk.corpus import stopwords #Stopwords
-#from BTrees.OOBTree import OOBTree
 import string, json
 
 class Indice_Invertido:
 
     def __init__(self, documentos):
-        ''' Recibe un diccionario con los documentos
-        '''
+        ''' Recibe una lista con los documentos '''
         self.stop_words = frozenset(stopwords.words('spanish'))  # lista de stop words
         self._docs = documentos
         self._spanish_stemmer = SnowballStemmer('spanish', ignore_stopwords=False)
@@ -22,9 +20,10 @@ class Indice_Invertido:
         documento'''
         self._doc_to_docID = {}
         docID = 0
-        for doc in self._docs.keys():
-            self._doc_to_docID[doc] = docID
-            docID += 1
+        for doc in self._docs:
+            for id_tweet,texto in doc.items():
+                self._doc_to_docID[id_tweet] = docID
+                docID += 1
         self._docID_to_doc = dict((v, k) for k, v in self._doc_to_docID.items())
 
     def __lematizar_palabra(self, palabra):
@@ -44,12 +43,13 @@ class Indice_Invertido:
         '''
         pares = []
         indice = {}
-        for doc in self._docs:
-            lista_palabras = [palabra for palabra in self._docs[doc].split() if not palabra in self.stop_words]
-            lista_palabras = [self.__lematizar_palabra(palabra) for palabra in lista_palabras]
 
-            pares = pares + [(palabra, self._doc_to_docID[doc]) for palabra in lista_palabras]
-        # pares = sorted(pares, key = lambda tupla: tupla[0])
+        for doc in self._docs: # [{"id_1" : "texto1"},{"id_2" : "texto2"}]
+            for id_tweet,texto in doc.items():
+                lista_palabras = [palabra for palabra in texto.split() if not palabra in self.stop_words]
+                lista_palabras = [self.__lematizar_palabra(palabra) for palabra in lista_palabras]
+                pares = pares + [(palabra, self._doc_to_docID[id_tweet]) for palabra in lista_palabras]
+
         for par in pares:
             posting = indice.setdefault(par[0], set())
 
@@ -62,6 +62,9 @@ class Indice_Invertido:
             posting.add(par[1])
 
         self._indice = indice
+
+    def get_indice(self):
+        return self._indice
 
     def buscar(self, palabra):
         salida = []
